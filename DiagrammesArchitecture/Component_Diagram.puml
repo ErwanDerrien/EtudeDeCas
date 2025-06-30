@@ -9,10 +9,10 @@ component "Blockchain" as chain {
   [AdminProxy] as Proxy
 }
 
-database "Layer 2 (Arbitrum)" as arbitrum
+database "Layer 3 (EDU Chain)" as l3
 
 front --> RC : "Appels via Web3.js"
 RC --> ERC20 : "transfer()"
 Proxy --> RC : "Mises à jour"
-RC --> arbitrum : "Stockage des données"
+RC --> l3 : "Stockage des données"
 @enduml

@@ -1,6 +1,6 @@
 # ADR-003 - Implémentation du Standard ERC-20 au lieu d'ERC-777
 
-**Statut** : Approuvé  
+**Statut** : En attente  
 **Date** : 2025-01-10  
 **Décideurs** : Équipe Sécurité, Smart Contract Devs
 

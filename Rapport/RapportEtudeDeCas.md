@@ -11,7 +11,7 @@
 3. [Styles Architecturaux Adoptés](#3-styles-architecturaux-adoptés)
 4. [Analyse des Tactiques et Attributs de Qualité](#4-analyse-des-tactiques-et-attributs-de-qualité)
 5. [Technologies et Plateformes](#5-technologies-plateformes-et-frameworks)
-6. [Documentation 4+1 Viewpoints](#6-architecture-views-4-1-model)
+6. [Documentation 4+1 Viewpoints](#6-architecture-views-4-plus-1-model)
 7. [Diagrammes d'Architecture](#7-diagrammes-darchitecture-umlc4)
 8. [Architectural Decision Records (ADR)](#8-architectural-decision-records-adr)
 9. [Analyse Critique](#9-analyse-critique-de-larchitecture)
@@ -28,13 +28,10 @@
 **Récompenser les Joueurs**
 
 - Les joueurs doivent recevoir des tokens après la complétion d'épreuves
-- Les tokens doivent être distribués automatiquement aux joueurs
 - Distribution transparente et traçable via la blockchain
 
 **Administration des Contrats**
 
-- Les gestionnaires doivent pouvoir gérer les contrats produits par l'application
-- Possibilité d'ajuster les paramètres des contrats au besoin
 - Interface d'administration centralisée pour les opérations critiques
 
 #### Exigences Non-Fonctionnelles
@@ -42,7 +39,7 @@
 **Performance**
 
 - Les contrats doivent être rendus accessibles sur la blockchain dans un temps raisonnable
-- Optimisation des coûts de transaction via l'utilisation de Layer 2
+- Optimisation des coûts de transaction via l'utilisation de Layer 3
 - Temps de déploiement optimisé pour l'expérience utilisateur
 
 **Sécurité**
@@ -89,7 +86,9 @@
 
 **Blockchain**
 
-- Utilisation obligatoire de la blockchain Ethereum
+- Utilisation d’une chaine compatible avec le modèle EVM de Ethereum (pour simplicité et robustesse du développment)
+- Sélection d’une chaine rapide et peu couteuse (L1: Ethereum -> L2: Arbitrum -> L3: EDU Chain)
+- À la fin, les contrats et toutes les transactions finissent sur la chaine Ethereumm
 - Impact sur les coûts de transaction et la vitesse d'exécution
 - Limitations de throughput inhérentes à Ethereum
 
@@ -108,6 +107,7 @@
 **Performance**
 
 - Gestion optimisée du déploiement sur différents layers Ethereum
+- Les opérations sont traitées par des nœuds déployés pour EDU Chain
 - Minimisation du temps nécessaire avant disponibilité des contrats
 - Optimisation des coûts de gas pour les utilisateurs
 
@@ -123,7 +123,8 @@
 
 - Conformité aux réglementations locales respectives aux différents pays
 - Gestion des tokens représentant une valeur monétaire
-- Compliance KYC/AML selon les juridictions
+- Compliance KYC selon les juridictions. KYC (know your customer) collecte des informations légalés sur les utilisateurs en vue de s’assurer qu’ils ne font pas du blanchiement d’argent, ou qu’on peut les retrouver au cas où.
+- On utilise le service https://www.blockpass.org/
 
 ---
 
@@ -133,9 +134,15 @@
 
 #### Performance
 
-- **Objectif** : Temps de déploiement optimisé
-- **Métriques** : Délai de confirmation < 30 secondes sur Layer 2
-- **Contraintes** : Coûts de gas maintenus sous 0.01 ETH par transaction
+- **Objectif** : Temps de confirmation et coûts de transaction optimisés
+- **Métriques** :
+  - Délai de confirmation < 5 secondes sur EDU Chain (L3)
+  - Coût moyen par transaction < 0.0002 ETH (~0.50$ à 2500$/ETH)
+- **Contraintes** :
+  - Transfert ETH standard : ~21 000 gas (0.0002 ETH)
+  - Transfert token ERC-20 : ~65 000 gas (3x plus cher qu'ETH)
+  - Variations selon la congestion réseau et prix du gas
+  - Coûts indépendants des montants transférés
 
 #### Disponibilité
 
@@ -145,17 +152,39 @@
 
 #### Modifiabilité
 
-- **Objectif** : Capacité d'évolution contrôlée
-- **Métriques** : Mise à jour possible via proxy sans migration des données
-- **Contraintes** : Immutabilité des contrats après publication finale
+- **Objectif** : Gestion des évolutions dans un contexte blockchain immutable
+- **Métriques** :
+  - Nombre de modifications nécessitant un nouveau déploiement
+  - Coût moyen des migrations de contrat
+- **Contraintes** :
+  - Choix architectural : pas d'utilisation de proxy pour les tokens
+  - Contrats principaux immutables après audit et publication
+  - Toute modification nécessite un nouveau déploiement
 
 ### 2.2 Concepts de Design
 
 #### Performance
 
-- **Déploiement Multi-Layer** : Déploiement initial sur Layer 2 (Arbitrum)
-- **Optimisation Gas** : Finalisation sur Layer 1 uniquement quand nécessaire
-- **Batch Processing** : Regroupement des transactions pour réduire les coûts
+- **Optimisation Single-Chain** : Déploiement exclusif sur EDU Chain (L3 EVM-compatible)
+- **Avantages clés** :
+
+  - Latence réduite : confirmations en < 5 secondes
+  - Coûts minimisés : ~0.0002 ETH par transaction standard
+  - Simplicité opérationnelle : pas de gestion cross-layer
+
+- **Mécanismes d'optimisation** :
+
+  - **Batch Processing natif** :
+    - Regroupement automatique des transactions par le protocole L3
+    - Compression des données avant remontée vers Ethereum L1
+  - **Economies d'échelle** :
+    - Partage des coûts de gas entre tous les utilisateurs de L3
+    - Pas de compétition directe avec les transactions Ethereum mainnet
+
+- **Contraintes techniques** :
+  - Dépendance à la stabilité d'EDU Chain
+  - Frais fixes liés au bridging vers Ethereum L1
+  - Limites de throughput du protocole L3
 
 #### Disponibilité
 
@@ -217,19 +246,26 @@ L'analyse du système et des exigences fonctionnelles/non-fonctionnelles suggèr
 - Utilisation de proxies modulaires pour une maintenance flexible
 - Interfaces standardisées entre les composants
 
-### 3.4 Architecture Orientée Événements (Event-Driven)
+### 3.4 Architecture Transactionnelle
 
-**Justification**
+**Caractéristiques** :
 
-- Smart contracts déclenchent des événements lors des actions critiques
-- Découplage entre les composants via les événements blockchain
-- Réactivité aux actions des joueurs et changements d'état
+- Modèle basé sur transactions EVM (exécution atomique)
+- État modifié uniquement par transactions validées
+- Événements utilisés comme logs observables (pas pour la logique métier)
 
-**Implémentations**
+**Implémentation** :
 
-- Événements Ethereum (logs) pour notifier les distributions de tokens
-- Patterns State Machine pour gérer les transitions d'états
-- Listeners frontend pour les mises à jour en temps réel
+- Transactions utilisateur déclenchent tous les changements d'état
+- Événements Ethereum émis pour :
+  - Suivi par les wallets/frontends
+  - Historisation des actions
+- Pattern Checks-Effects-Interactions pour sécurité
+
+**Différence clé** :
+
+- Notre système : Changements d'état par transactions
+- Event-Driven : Changements d'état par événements
 
 ### 3.5 Patterns de Sécurité (Access Control & Protection)
 
@@ -247,13 +283,13 @@ L'analyse du système et des exigences fonctionnelles/non-fonctionnelles suggèr
 
 ### Synthèse des Choix Architecturaux
 
-| **Style**                | **Adéquation aux Exigences**                                  | **Exemple dans le Projet**                  |
-| ------------------------ | ------------------------------------------------------------- | ------------------------------------------- |
-| Décentralisé             | Conformité blockchain, déploiement immuable, interopérabilité | Contrats ERC-20 déployés sur Ethereum L2/L1 |
-| Client-Serveur (Hybride) | Interface admin centralisée + logique décentralisée           | Dashboard admin connecté aux contrats       |
-| Microservices            | Modularité pour tokens, NFTs, et gouvernance                  | Contrats séparés avec proxies               |
-| Event-Driven             | Réactivité aux actions des joueurs (épreuves, votes)          | Événements de distribution de tokens        |
-| Sécurisé                 | Protection contre les attaques et permissions granulaires     | Modifiers et patterns de sécurité           |
+| **Style**                | **Adéquation aux Exigences**                                  | **Exemple dans le Projet**                     |
+| ------------------------ | ------------------------------------------------------------- | ---------------------------------------------- |
+| Décentralisé             | Conformité blockchain, déploiement immuable, interopérabilité | Contrats ERC-20 déployés sur Ethereum L3/L2/L1 |
+| Client-Serveur (Hybride) | Interface admin centralisée + logique décentralisée           | Dashboard admin connecté aux contrats          |
+| Microservices            | Modularité pour tokens, NFTs, et gouvernance                  | Contrats séparés avec proxies                  |
+| Event-Driven             | Réactivité aux actions des joueurs (épreuves, votes)          | Événements de distribution de tokens           |
+| Sécurisé                 | Protection contre les attaques et permissions granulaires     | Modifiers et patterns de sécurité              |
 
 ---
 
@@ -392,16 +428,12 @@ Cette section détaille les outils et méthodologies employés pour développer 
 | **Solidity (0.8.x+)**      | Langage principal                  | Standard Ethereum, support étendu des EIPs récents |
 | **Hardhat**                | Environnement de développement     | Plugins pour tests, déploiement et débogage avancé |
 | **OpenZeppelin Contracts** | Bibliothèque de contrats sécurisés | Implémentation gas-optimized des standards ERC     |
-<!-- | **Foundry (Forge, Cast)**  | Tests fuzz et scripts              | Tests en Solidity natif, rapidité d'exécution 10x  | -->
 
 ### 5.3 Sécurité et Audit
 
-| **Outil/Pratique**                        | **Application**       | **Bénéfice**                                                |
-| ----------------------------------------- | --------------------- | ----------------------------------------------------------- |
-| **Tests unitaires (Hardhat)**            | Couverture du code    | Validation 95%+ des fonctions critiques                     |
-<!-- | **Slither/MythX**                         | Analyse statique      | Détection automatique vulnérabilités (reentrancy, overflow) | -->
-<!-- | **Certora**                               | Vérification formelle | Preuves mathématiques de la sûreté du code                  | -->
-<!-- | **Audits externes (ConsenSys Diligence)** | Revue par experts     | Confiance accrue investisseurs, certification sécurité      | -->
+| **Outil/Pratique**            | **Application**    | **Bénéfice**                            |
+| ----------------------------- | ------------------ | --------------------------------------- |
+| **Tests unitaires (Hardhat)** | Couverture du code | Validation 95%+ des fonctions critiques |
 
 ### 5.4 Interopérabilité et Intégrations
 
@@ -422,19 +454,19 @@ Cette section détaille les outils et méthodologies employés pour développer 
 
 ### Synthèse des Choix Technologiques
 
-| **Catégorie**           | **Stack Technique**                      | **Maturité** | **Adoption** |
-| ----------------------- | ---------------------------------------- | ------------ | ------------ |
-| **Blockchain**          | Ethereum L1 + L2 (Arbitrum), IPFS        | Production   | 95%+         |
-| **Dev Smart Contracts** | Solidity, Hardhat, OpenZeppelin, Foundry | Production   | 90%+         |
-| **Sécurité**            | Slither, Certora, Audits externes        | Production   | 85%+         |
-| **Interopérabilité**    | WalletConnect, Chainlink, LiFi           | Production   | 80%+         |
-| **DevOps**              | GitHub Actions, Tenderly, Gas Profiler   | Production   | 75%+         |
+| **Catégorie**           | **Stack Technique**                                | **Maturité** | **Adoption** |
+| ----------------------- | -------------------------------------------------- | ------------ | ------------ |
+| **Blockchain**          | Ethereum L1 + L2 (Arbitrum) + (L3 EDU Chain), IPFS | Production   | 95%+         |
+| **Dev Smart Contracts** | Solidity, Hardhat, OpenZeppelin, Foundry           | Production   | 90%+         |
+| **Sécurité**            | Slither, Certora, Audits externes                  | Production   | 85%+         |
+| **Interopérabilité**    | WalletConnect, Chainlink, LiFi                     | Production   | 80%+         |
+| **DevOps**              | GitHub Actions, Tenderly, Gas Profiler             | Production   | 75%+         |
 
 Ces technologies ont été sélectionnées pour leur **adéquation aux exigences** (décentralisation, sécurité, performance) et leur **adoption par l'écosystème Ethereum**, garantissant un développement robuste et évolutif.
 
 ---
 
-## 6. Architecture Views (4+1 Model)
+## 6. Architecture Views (4 plus 1 Model)
 
 ### 6.1 Scenarios (Use Case View)
 
@@ -541,12 +573,12 @@ Ces technologies ont été sélectionnées pour leur **adéquation aux exigences
 **Infrastructure Multi-Chain**
 
 - **Layer 1 (Ethereum Mainnet)** : Stocke le contrat ERC-20 principal (sécurité maximale)
-- **Layer 2 (Arbitrum)** : Héberge le `RewardContract` (coûts réduits, vitesse élevée)
+- **Layer 3 (EDU Chain)** : Héberge le `RewardContract` (coûts réduits, vitesse élevée)
 - **IPFS Network** : Stockage décentralisé des métadonnées NFT et documentation
 
 **Interactions Cross-Layer**
 
-- Le `RewardContract` sur L2 communique avec `ERC20Token` sur L1 via bridges officiels
+- Le `RewardContract` sur L3 communique avec `ERC20Token` sur L1 via bridges officiels
 - Synchronisation des états via événements et oracles Chainlink
 - Fallback mechanisms pour assurer la continuité en cas de congestion réseau
 
@@ -605,7 +637,7 @@ Ces technologies ont été sélectionnées pour leur **adéquation aux exigences
 **Technologies d'Infrastructure**
 
 - **Ethereum Mainnet** : Sécurité maximale pour le token ERC-20 principal
-- **Arbitrum L2** : Interactions fréquentes à coût réduit (gas 95% moins cher)
+- **Arbitrum L3** : Interactions fréquentes à coût réduit
 - **IPFS** : Stockage décentralisé et résilient des métadonnées
 - **Monitoring** : Tenderly pour surveillance temps réel des contrats
 
@@ -630,11 +662,11 @@ Les décisions architecturales critiques sont documentées dans des ADRs sépar�
 
 ### Registre des ADRs
 
-| ADR | Titre               | Statut   | Lien                                     |
-| --- | ------------------- | -------- | ---------------------------------------- |
-| 001 | Proxy Upgradable    | Approuvé | [Voir](/ADR/ADR-001-proxy-upgradable.md) |
-| 002 | Choix d'Arbitrum L2 | Approuvé | [Voir](/ADR/ADR-002-layer2-arbitrum.md)  |
-| 003 | Standard ERC-20     | Approuvé | [Voir](/ADR/ADR-003-erc20-standard.md)   |
+| ADR | Titre                | Statut     | Référence                                         |
+| --- | -------------------- | ---------- | ------------------------------------------------- |
+| 001 | Proxy Upgradable     | En attente | [Voir](/ADR/ADR-001-proxy-upgradable.md) Annexe 1 |
+| 002 | Choix d'EDU Chain L3 | En attente | [Voir](/ADR/ADR-002-layer3-edu-chain.md) Annexe 2 |
+| 003 | Standard ERC-20      | En attente | [Voir](/ADR/ADR-003-erc20-standard.md) Annexe 3   |
 
 ---
 
@@ -688,7 +720,7 @@ L'hybridation entre architecture décentralisée et client-serveur répond aux e
 
 **Performance - Architecture Multi-Layer**
 
-- **Implémentation** : Logique sur Arbitrum L2, tokens sur Ethereum L1
+- **Implémentation** : Logique sur EDU Chain L3, tokens sur Ethereum L1
 - **Efficacité** : Modérée - réduction significative des coûts mais latence résiduelle
 - **Limitations** : Fragmentation entre différents layers
 
@@ -718,7 +750,7 @@ L'architecture manque de tactiques robustes pour la récupération automatique e
 - **Risques** : Compétences rares sur le marché et courbe d'apprentissage abrupte
 - **Impact** : Sécurité accrue mais coûts de recrutement élevés
 
-**Arbitrum Layer 2**
+**Arbitrum Layer 3**
 
 - **Justification** : Réduction significative des coûts par rapport à Ethereum L1
 - **Risques** : Centralisation temporaire des validateurs et dépendance à un protocole tiers
@@ -796,7 +828,7 @@ Les recommandations proposées visent à combler ces lacunes tout en préservant
 L'analyse architecturale du système de récompenses blockchain a permis de valider les choix fondamentaux tout en identifiant des axes d'amélioration critiques.
 
 **Validation des Choix Architecturaux**
-L'hybridation entre architecture décentralisée (Ethereum L1) et client-serveur (frontend interfacé aux smart contracts) répond efficacement aux exigences de sécurité et d'auditabilité. L'optimisation des coûts via Arbitrum L2 démontre une compréhension appropriée des contraintes économiques de l'écosystème blockchain.
+L'hybridation entre architecture décentralisée (Ethereum L1) et client-serveur (frontend interfacé aux smart contracts) répond efficacement aux exigences de sécurité et d'auditabilité. L'optimisation des coûts via EDU Chain L3 démontre une compréhension appropriée des contraintes économiques de l'écosystème blockchain.
 
 **Identification des Risques Critiques**
 L'analyse a révélé des vulnérabilités structurelles importantes, notamment la dépendance aux wallets externes et l'absence de mécanismes de rollback automatisé. Ces éléments constituent des points de défaillance unique nécessitant des correctifs prioritaires.
@@ -812,7 +844,7 @@ Le gain en immutabilité des transactions se paie par une latence réseau d'envi
 La capacité d'upgrade via les proxies améliore significativement la maintenabilité mais introduit une complexité accrue du codebase nécessitant des compétences spécialisées.
 
 **Optimisation des Coûts versus Fragmentation**
-La réduction drastique des frais via Layer 2 s'accompagne d'une fragmentation multi-chaîne augmentant la complexité opérationnelle et les risques de synchronisation.
+La réduction drastique des frais via Layer 3 s'accompagne d'une fragmentation multi-chaîne augmentant la complexité opérationnelle et les risques de synchronisation.
 
 ### Recommandations Stratégiques
 
@@ -844,9 +876,134 @@ Une architecture n'est jamais terminée mais évolue continuellement avec les be
 
 La mise en place d'un processus de gouvernance technique structuré, combinée à l'implémentation progressive des recommandations prioritaires, permettra d'assurer la pérennité et l'évolutivité du système dans un environnement technologique en constante mutation.
 
----
+## 11. Annexes
 
-### Fichiers Associés
+### Annexe 1 : ADR-001 - Utilisation d'un Proxy Upgradable pour les contrats
 
-- [Roadmap_2025.md](/docs/roadmap.md) : Détails des étapes d'implémentation
-- [PostMortem_HealthCareGov.md](/docs/comparisons.md) : Retours d'expérience sur les erreurs à éviter
+**Statut** : En attente  
+**Date** : 2025-03-15
+**Décideurs** : Architecte blockchain, Lead Dev
+
+#### Contexte
+
+Nécessité de corriger des bugs ou d'ajouter des fonctionnalités post-déploiement sans perdre l'état existant (ex: balances des utilisateurs).
+
+#### Options considérées
+
+1. **Contrats immutables**
+   - _Avantages_ : Alignement avec le principe "code is law", sécurité accrue.
+   - _Inconvénients_ : Impossible de patcher des vulnérabilités ou d'évoluer.
+2. **Proxy Upgradable (Pattern Transparent Proxy)**
+   - _Avantages_ : Logique métier modifiable tout en conservant le stockage.
+   - _Inconvénients_ : Complexité accrue, coût en gas initial plus élevé.
+
+#### Décision
+
+**Option 2** avec implémentation du standard OpenZeppelin `TransparentUpgradeableProxy`.
+
+- Justification :
+  - Nécessité de maintenir l'évolutivité pour un produit en phase de croissance.
+  - Séparation claire entre le stockage (conservé) et la logique (upgradable).
+
+#### Conséquences
+
+- _Positives_ :
+  - Mises à jour possibles sans migration coûteuse des données.
+- _Négatives_ :
+  - Risque d'attaques sur le proxy si mal configuré (ex: contrôle d'accès oublié).
+- _Risques_ :
+  - Perte de confiance des utilisateurs si les upgrades sont trop fréquentes.
+
+### Annexe 2 : ADR-002 - Choix d'Ethereum Layer 3 (EDU Chain)
+
+**Statut** : En attente  
+**Date** : 2025-02-20  
+**Décideurs** : CTO, Équipe Blockchain
+
+#### Contexte
+
+Frais de transaction (gas) prohibitifs sur Ethereum Mainnet pour les micro-transactions de tokens, avec besoin d'une solution scalable spécifique à notre écosystème éducatif.
+
+#### Options considérées
+
+1. **Rester sur Ethereum L1**
+
+   - _Avantages_ : Sécurité maximale, décentralisation.
+   - _Inconvénients_ : Coût >1$ par transaction, limite l'adoption pour les cas d'usage éducatifs.
+
+2. **Migrer vers un Layer 2 généraliste (Arbitrum/Polygon)**
+
+   - _Avantages_ : Frais réduits, compatibilité EVM.
+   - _Inconvénients_ : Non optimisé pour les flux pédagogiques, moindre contrôle.
+
+3. **Développer EDU Chain (Layer 3 custom sur Arbitrum)**
+   - _Avantages_ :
+     - Frais quasi-nuls pour les étudiants/enseignants
+     - Possibilité d'intégrer des primitives métier (badges, parcours certifiants)
+     - Interopérabilité maintenue avec L2/L1 via bridges
+   - _Inconvénients_ :
+     - Effort initial de développement
+     - Nécessité de gérer des validateurs dédiés
+
+#### Décision
+
+**Option 3 (EDU Chain)** avec architecture hybride :
+
+- **L1 Ethereum** : Ancrage de sécurité pour les assets critiques
+- **L2 Arbitrum** : Liquidité et interconnexion avec l'écosystème DeFi
+- **L3 EDU Chain** :
+  - Rollup optimiste custom
+  - Whitelist d'opérations éducatives gasless
+  - Modules spécifiques pour la gouvernance académique
+
+#### Conséquences
+
+- _Positives_ :
+
+  - Expérience utilisateur idéale pour les établissements partenaires
+  - Possibilité d'innovations pédagogiques on-chain
+
+- _Négatives_ :
+
+  - Surcharge opérationnelle initiale
+  - Courbe d'apprentissage pour les utilisateurs non techniques
+
+- _Risques_ :
+  - Sécurité du stack L3 encore émergente
+  - Effet réseau à construire sur la chaîne dédiée
+
+### Annexe 3 : ADR-003 - Implémentation du Standard ERC-20 au lieu d'ERC-777
+
+**Statut** : En attente  
+**Date** : 2025-01-10  
+**Décideurs** : Équipe Sécurité, Smart Contract Devs
+
+#### Contexte
+
+Besoin d'un token fongible pour récompenser les joueurs, avec compatibilité maximale.
+
+#### Options considérées
+
+1. **ERC-20**
+   - _Avantages_ : Standard le plus adopté, supporté par tous les wallets.
+   - _Inconvénients_ : Fonctionnalités limitées (ex: pas de hooks).
+2. **ERC-777**
+   - _Avantages_ : Plus flexible (hooks pour des callbacks).
+   - _Inconvénients_ : Risques de reentrancy, support limité.
+
+#### Décision
+
+**Option 1 (ERC-20)** avec extension via `ERC20Snapshot` pour les besoins futurs.
+
+- Justification :
+  - Priorité à la sécurité et à l'interopérabilité.
+  - Les hooks de l'ERC-777 introduisent des vecteurs d'attaque complexes.
+
+#### Conséquences
+
+- _Positives_ :
+  - Intégration facile avec les exchanges et wallets.
+- _Négatives_ :
+  - Nécessité de développer des mécanismes custom pour certaines features.
+- _Risques_ :
+  - Aucun identifié (standard bien éprouvé).

@@ -7,10 +7,10 @@ node "Ethereum Mainnet" as mainnet {
   database "ERC20Token"
 }
 
-node "Arbitrum (Layer 2)" as l2 {
+node "EDU Chain (Layer 3)" as l3 {
   component "RewardContract"
 }
 
-web --> l2 : "Transactions (bas coût)"
-l2 --> mainnet : "Bridge des tokens"
+web --> l3 : "Transactions (bas coût)"
+l3 --> mainnet : "Bridge des tokens"
 @enduml

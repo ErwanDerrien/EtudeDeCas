@@ -1,6 +1,6 @@
 # ADR-001 - Utilisation d'un Proxy Upgradable pour les contrats  
-**Statut** : Approuvé  
-**Date** : 2025-03-15  
+**Statut** : En attente  
+**Date** : 2025-03-15
 **Décideurs** : Architecte blockchain, Lead Dev  
 
 ## Contexte  

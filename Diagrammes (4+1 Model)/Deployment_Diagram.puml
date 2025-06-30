@@ -2,8 +2,8 @@
 node "Ethereum Layer 1" as L1 {
   component "ERC20Token" as TokenL1
 }
-node "Layer 2 (Arbitrum)" as L2 {
-  component "RewardContract" as RewardL2
+node "Layer 3 (EDU Chain)" as L3 {
+  component "RewardContract" as RewardL3
 }
-L2 --> L1 : Appels cross-chain
+L3 --> L1 : Appels cross-chain
 @enduml
