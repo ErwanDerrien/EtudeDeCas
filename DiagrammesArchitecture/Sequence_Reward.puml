@@ -1,0 +1,15 @@
+@startuml Sequence_Reward
+actor Joueur
+participant Frontend
+box "Ethereum"
+participant RewardContract
+participant ERC20Token
+end box
+
+Joueur -> Frontend : "Valide une épreuve"
+Frontend -> RewardContract : "challengeCompleted()"
+RewardContract -> ERC20Token : "transfer(joueur, 10 tokens)"
+ERC20Token --> RewardContract : "Confirmation"
+RewardContract --> Frontend : "Événement 'TokensDistribués'"
+Frontend --> Joueur : "Notification UI"
+@enduml

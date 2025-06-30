@@ -1,0 +1,18 @@
+@startuml Component_Diagram
+component "Frontend" as front {
+  [Application Web]
+}
+
+component "Blockchain" as chain {
+  [RewardContract] as RC
+  [ERC20Token] as ERC20
+  [AdminProxy] as Proxy
+}
+
+database "Layer 2 (Arbitrum)" as arbitrum
+
+front --> RC : "Appels via Web3.js"
+RC --> ERC20 : "transfer()"
+Proxy --> RC : "Mises à jour"
+RC --> arbitrum : "Stockage des données"
+@enduml

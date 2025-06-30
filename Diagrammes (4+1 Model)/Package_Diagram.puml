@@ -1,0 +1,14 @@
+@startuml Package_Diagram
+folder "src" {
+  folder "contracts" {
+    [ERC20.sol]
+    [RewardSystem.sol]
+    [Admin.sol]
+  }
+  folder "tests" {
+    [test_rewards.js]
+  }
+}
+[RewardSystem.sol] --> [ERC20.sol]
+[Admin.sol] --> [RewardSystem.sol]
+@enduml

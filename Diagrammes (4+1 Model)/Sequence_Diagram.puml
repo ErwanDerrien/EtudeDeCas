@@ -1,0 +1,9 @@
+@startuml Sequence_Diagram
+actor Joueur
+participant "RewardContract" as RC
+participant "ERC20Token" as Token
+Joueur -> RC : challengeCompleted()
+RC -> Token : transfer(Joueur, amount)
+Token --> RC : succès
+RC --> Joueur : Tokens reçus
+@enduml

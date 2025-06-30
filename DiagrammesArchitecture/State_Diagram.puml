@@ -1,0 +1,7 @@
+@startuml State_Diagram
+[*] --> Draft : "Déploiement"
+Draft --> Active : "Initialisation"
+Active --> Paused : "Emergency Pause"
+Paused --> Active : "Reprise"
+Active --> [*] : "Désactivation"
+@enduml

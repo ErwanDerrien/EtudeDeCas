@@ -1,0 +1,13 @@
+@startuml UseCase_Diagram
+left to right direction
+actor "Joueur" as Player
+actor "Admin" as Admin
+rectangle "Smart Contracts" {
+  usecase "Compléter une épreuve" as UC1
+  usecase "Recevoir des tokens" as UC2
+  usecase "Gérer les contrats" as UC3
+}
+Player --> UC1
+Player --> UC2
+Admin --> UC3
+@enduml

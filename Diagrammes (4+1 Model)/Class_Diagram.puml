@@ -1,0 +1,15 @@
+@startuml Class_Diagram
+class ERC20Token {
+  +balanceOf(address): uint256
+  +transfer(to, amount)
+}
+class RewardContract {
+  +challengeCompleted(user)
+  +distributeTokens(user, amount)
+}
+class AdminManager {
+  +updateRewardRate(newRate)
+}
+ERC20Token <-- RewardContract : utilise
+AdminManager --> RewardContract : configure
+@enduml

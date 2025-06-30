@@ -1,0 +1,10 @@
+@startuml Context_Diagram
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+
+Person(joueur, "Joueur", "Utilise l'application pour gagner des tokens")
+System(contrat, "Smart Contract de Récompense", "Distribue des tokens ERC-20")
+System(wallet, "Wallet (ex: MetaMask)", "Stocke les tokens des utilisateurs")
+
+Rel(joueur, contrat, "Complète des épreuves")
+Rel(contrat, wallet, "Transfère des tokens")
+@enduml

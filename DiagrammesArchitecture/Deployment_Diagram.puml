@@ -1,0 +1,16 @@
+@startuml Deployment_Diagram
+node "Serveur Web" as web {
+  component "Frontend"
+}
+
+node "Ethereum Mainnet" as mainnet {
+  database "ERC20Token"
+}
+
+node "Arbitrum (Layer 2)" as l2 {
+  component "RewardContract"
+}
+
+web --> l2 : "Transactions (bas coût)"
+l2 --> mainnet : "Bridge des tokens"
+@enduml
