@@ -1,6 +1,7 @@
-# Rapport d'Analyse Architecturale
+# Étude de Cas
 
-## Système de Récompenses Blockchain Ethereum
+## Sujet : [Système de Récompenses Blockchain Ethereum](https://github.com/MogalandOrganization/smart-contracts)
+## https://github.com/MogalandOrganization/smart-contracts
 
 ---
 
@@ -215,7 +216,7 @@ L'analyse du système et des exigences fonctionnelles/non-fonctionnelles suggèr
 **Implémentations**
 
 - Utilisation de contrats autonomes pour gérer les récompenses sans intermédiaire
-- Déploiement multi-layer (Layer 2 pour la performance, Layer 1 pour la sécurité)
+- Déploiement multi-layer (Layer 3 pour la performance, Layer 1 pour la sécurité)
 - Stockage décentralisé via IPFS pour les métadonnées NFT
 
 ### 3.2 Modèle Client-Serveur (Hybride)
@@ -305,7 +306,7 @@ Pour répondre aux exigences fonctionnelles et non-fonctionnelles du système, p
 
 **Optimisation du Déploiement Multi-Layer**
 
-- Déploiement initial sur **Layer 2 (Arbitrum, Optimism)** pour réduire les coûts et accélérer les transactions
+- Déploiement initial sur **Layer 3 (EDU Chain)** pour réduire les coûts et accélérer les transactions
 - Déploiement final sur **Ethereum Layer 1** pour la sécurité et la décentralisation maximales
 - **Impact** : Réduction des frais de gas de 90% et amélioration de la vitesse d'exécution
 
@@ -350,7 +351,7 @@ Pour répondre aux exigences fonctionnelles et non-fonctionnelles du système, p
 
 **Déploiement Multi-Chaînes**
 
-- Contrats déployés sur **Ethereum + Layer 2 + blockchains compatibles EVM** (Polygon, BSC)
+- Contrats déployés sur **Ethereum + Layer 3 + blockchains compatibles EVM** (Polygon, BSC)
 - **Impact** : Réduction de la dépendance à un seul réseau et amélioration de la résilience
 
 **Monitoring et Alertes**
@@ -474,7 +475,7 @@ Ces technologies ont été sélectionnées pour leur **adéquation aux exigences
 
 #### Diagramme UML - Cas d'Usage Principal
 
-![UseCase_Diagram](<../out/Diagrammes%20(4+1%20Model)/UseCase_Diagram/UseCase_Diagram.png>)
+![UseCase_Diagram](../out/Diagrammes%20(4+1%20Model)/UseCase_Diagram/UseCase_Diagram.png)
 
 #### Explications
 
