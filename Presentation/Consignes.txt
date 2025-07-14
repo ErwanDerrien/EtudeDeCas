@@ -1,0 +1,8 @@
+1) Contexte du projet
+2) Discussion du ATDD (aspects de qualité)
+3) Les styles d'architecture et tactiques
+4) Le diagrammes du 4+1 avec une discussion rapide
+5) Les principaux ADRs
+6) Points forts et failbles
+7) Recommandations
+10) Conclusion (avec une analyse critique du projet)
